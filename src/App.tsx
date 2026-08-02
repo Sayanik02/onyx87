@@ -30,6 +30,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Overview} />
+      <Route path="/guilds" component={Overview} />
       <Route path="/modules" component={Modules} />
       <Route path="/antinuke" component={Antinuke} />
       <Route path="/backups" component={Backups} />
