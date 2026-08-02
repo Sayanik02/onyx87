@@ -8,21 +8,8 @@ import { useModules } from '../context/ModulesContext';
 import { useDashboard } from '../context/DashboardContext';
 import { apiGet, apiPost } from '../lib/api';
 
-interface LevelingConfig {
-  enabled: boolean;
-  xp_min: number;
-  xp_max: number;
-  announce: boolean;
-  channel_id: string | null;
-}
-
-interface LeaderboardEntry {
-  rank: number;
-  user_id: string;
-  name: string;
-  level: number;
-  xp: string;
-}
+interface LevelingConfig { enabled: boolean; xp_min: number; xp_max: number; announce: boolean; channel_id: string | null; }
+interface LeaderboardEntry { rank: number; user_id: string; name: string; level: number; xp: string; }
 
 export const Leveling: React.FC = () => {
   const { enabledModules, toggleModule } = useModules();
@@ -30,13 +17,7 @@ export const Leveling: React.FC = () => {
   const { addToast } = useToast();
   const { selectedGuildId, guildInfo } = useDashboard();
 
-  const [settings, setSettings] = useState<LevelingConfig>({
-    enabled: false,
-    xp_min: 15,
-    xp_max: 25,
-    announce: false,
-    channel_id: null,
-  });
+  const [settings, setSettings] = useState<LevelingConfig>({ enabled: false, xp_min: 15, xp_max: 25, announce: false, channel_id: null });
   const [lb, setLb] = useState<LeaderboardEntry[]>([]);
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [loadingLb, setLoadingLb] = useState(true);
@@ -44,19 +25,12 @@ export const Leveling: React.FC = () => {
 
   useEffect(() => {
     if (!selectedGuildId) return;
-
     setLoadingConfig(true);
     setLoadingLb(true);
-
     apiGet<LevelingConfig>(`/api/guild/${selectedGuildId}/leveling`)
-      .then((data) => setSettings(data))
-      .catch(() => {/* keep defaults */})
-      .finally(() => setLoadingConfig(false));
-
+      .then(data => setSettings(data)).catch(() => {}).finally(() => setLoadingConfig(false));
     apiGet<LeaderboardEntry[]>(`/api/guild/${selectedGuildId}/leaderboard`)
-      .then((data) => setLb(data))
-      .catch(() => setLb([]))
-      .finally(() => setLoadingLb(false));
+      .then(data => setLb(data)).catch(() => setLb([])).finally(() => setLoadingLb(false));
   }, [selectedGuildId]);
 
   const handleSave = async () => {
@@ -65,11 +39,8 @@ export const Leveling: React.FC = () => {
     try {
       await apiPost(`/api/guild/${selectedGuildId}/leveling`, settings);
       addToast('Leveling settings saved!', 'success');
-    } catch {
-      addToast('Failed to save settings.', 'error');
-    } finally {
-      setSaving(false);
-    }
+    } catch { addToast('Failed to save settings.', 'error'); }
+    finally { setSaving(false); }
   };
 
   const channels = guildInfo?.channels || [];
@@ -88,29 +59,17 @@ export const Leveling: React.FC = () => {
         <div className="flex flex-col gap-6">
           <Card>
             <h3 className="font-display font-bold text-lg mb-2">XP Rates</h3>
-            {loadingConfig ? (
-              <p className="text-sm text-[var(--text-faint)]">Loading…</p>
-            ) : (
+            {loadingConfig ? <p className="text-sm text-[var(--text-faint)]">Loading…</p> : (
               <>
                 <div className="flex items-center gap-4 mt-4">
                   <div className="flex-1">
                     <label className="text-xs font-semibold text-[var(--text-muted)] block mb-1">Min XP per msg</label>
-                    <input
-                      type="number"
-                      value={settings.xp_min}
-                      onChange={e => setSettings(p => ({ ...p, xp_min: +e.target.value }))}
-                      className="w-full text-center"
-                    />
+                    <input type="number" value={settings.xp_min} onChange={e => setSettings(p => ({ ...p, xp_min: +e.target.value }))} className="w-full text-center" />
                   </div>
                   <div className="text-[var(--text-faint)] mt-4">to</div>
                   <div className="flex-1">
                     <label className="text-xs font-semibold text-[var(--text-muted)] block mb-1">Max XP per msg</label>
-                    <input
-                      type="number"
-                      value={settings.xp_max}
-                      onChange={e => setSettings(p => ({ ...p, xp_max: +e.target.value }))}
-                      className="w-full text-center"
-                    />
+                    <input type="number" value={settings.xp_max} onChange={e => setSettings(p => ({ ...p, xp_max: +e.target.value }))} className="w-full text-center" />
                   </div>
                 </div>
                 <p className="text-xs text-[var(--text-faint)] mt-3">XP is given randomly between these values. 60s cooldown between messages.</p>
@@ -120,35 +79,17 @@ export const Leveling: React.FC = () => {
 
           <Card>
             <h3 className="font-display font-bold text-lg mb-2">Level Up Messages</h3>
-            <SettingRow
-              label="Announce Level Ups"
-              control={
-                <Toggle
-                  on={settings.announce}
-                  onChange={v => setSettings(p => ({ ...p, announce: v }))}
-                />
-              }
-            />
+            <SettingRow label="Announce Level Ups" control={<Toggle on={settings.announce} onChange={v => setSettings(p => ({ ...p, announce: v }))} />} />
             {settings.announce && (
               <div className="mt-2">
                 <label className="text-xs font-semibold block mb-1">Channel</label>
-                <select
-                  value={settings.channel_id || ''}
-                  onChange={e => setSettings(p => ({ ...p, channel_id: e.target.value || null }))}
-                  className="w-full text-sm"
-                >
+                <select value={settings.channel_id || ''} onChange={e => setSettings(p => ({ ...p, channel_id: e.target.value || null }))} className="w-full text-sm">
                   <option value="">Current Channel</option>
-                  {channels.map(c => (
-                    <option key={c.id} value={c.id}>#{c.name}</option>
-                  ))}
+                  {channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}
                 </select>
               </div>
             )}
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="mt-4 w-full px-4 py-2 rounded-[var(--radius-sm)] bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
+            <button onClick={handleSave} disabled={saving} className="mt-4 w-full px-4 py-2 rounded-[var(--radius-sm)] bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
               {saving ? 'Saving…' : 'Save Settings'}
             </button>
           </Card>
@@ -159,21 +100,19 @@ export const Leveling: React.FC = () => {
             <h3 className="font-display font-bold text-lg mb-4 text-[var(--amber)]">
               Leaderboard <span className="text-xs font-normal text-[var(--text-faint)] ml-1">(live from your server)</span>
             </h3>
-            {loadingLb ? (
-              <p className="text-sm text-[var(--text-faint)]">Loading leaderboard…</p>
-            ) : lb.length === 0 ? (
-              <p className="text-sm text-[var(--text-faint)]">No XP data yet. Members earn XP by chatting.</p>
-            ) : (
-              <Table
-                columns={[
-                  { key: 'rank', header: '#', width: '40px', render: (r) => <span className="font-bold text-[var(--text-faint)]">#{r.rank}</span> },
-                  { key: 'name', header: 'User', render: (r) => <span className="font-semibold">{r.name}</span> },
-                  { key: 'level', header: 'Level', render: (r) => <span className="px-2 py-0.5 bg-[var(--surface-3)] rounded font-mono text-xs">Lv {r.level}</span> },
-                  { key: 'xp', header: 'Total XP', render: (r) => <span className="text-[var(--accent)] font-mono text-xs">{r.xp} XP</span> },
-                ]}
-                data={lb}
-              />
-            )}
+            {loadingLb ? <p className="text-sm text-[var(--text-faint)]">Loading leaderboard…</p>
+              : lb.length === 0 ? <p className="text-sm text-[var(--text-faint)]">No XP data yet. Members earn XP by chatting.</p>
+              : (
+                <Table
+                  columns={[
+                    { key: 'rank',  header: '#',        width: '40px', render: (r) => <span className="font-bold text-[var(--text-faint)]">#{r.rank}</span> },
+                    { key: 'name',  header: 'User',                    render: (r) => <span className="font-semibold">{r.name}</span> },
+                    { key: 'level', header: 'Level',                   render: (r) => <span className="px-2 py-0.5 bg-[var(--surface-3)] rounded font-mono text-xs">Lv {r.level}</span> },
+                    { key: 'xp',    header: 'Total XP',                render: (r) => <span className="text-[var(--accent)] font-mono text-xs">{r.xp} XP</span> },
+                  ]}
+                  data={lb}
+                />
+              )}
           </Card>
         </div>
       </div>
