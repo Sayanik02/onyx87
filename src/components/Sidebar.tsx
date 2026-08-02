@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { useModules, ModuleId } from '../context/ModulesContext';
 import { useDashboard } from '../context/DashboardContext';
-import { LayoutDashboard, Sparkles, Shield, Database, ShieldAlert, FileText, Ticket, UserPlus, Zap, Award, Crown, LogOut, Hexagon } from 'lucide-react';
+import { LayoutDashboard, Sparkles, Shield, Database, ShieldAlert, FileText, Ticket, UserPlus, Zap, Award, Crown, LogOut } from 'lucide-react';
 import { Badge } from './Badge';
 
 export const Sidebar: React.FC = () => {
@@ -39,7 +39,18 @@ export const Sidebar: React.FC = () => {
     <div className="w-[260px] h-full flex flex-col flex-shrink-0 border-r border-[var(--border)] bg-[var(--surface)] sticky top-0 z-20">
       <div className="p-6 pb-4">
         <div className="flex items-center gap-3 mb-6">
-          <Hexagon className="text-[var(--accent)]" size={32} fill="var(--accent-dim)" strokeWidth={1.5} />
+          {/* Real Onyx logo — place onyx-logo.png in your public/ folder */}
+          <img
+            src="/onyx-logo.png"
+            alt="Onyx"
+            width={32}
+            height={32}
+            className="rounded-md object-contain"
+            onError={(e) => {
+              // fallback: hide broken image, show nothing
+              (e.currentTarget as HTMLImageElement).style.display = 'none';
+            }}
+          />
           <span className="font-display font-bold text-2xl tracking-tight">Onyx</span>
         </div>
         
