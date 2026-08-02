@@ -1,7 +1,7 @@
 {
-  "installCommand": "cd \"dash idea new\" && npm install",
-  "buildCommand": "cd \"dash idea new\" && npm run build",
-  "outputDirectory": "dash idea new/dist",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
