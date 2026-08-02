@@ -1,6 +1,14 @@
-const STORAGE_KEY = 'onyx_dashboard_session_token';
+const STORAGE_KEY = 'onyx_token';
 
 export const getApiBaseUrl = () => {
+  const configuredFromWindow = typeof window !== 'undefined'
+    ? (window as typeof window & { ONYX_API_BASE?: string }).ONYX_API_BASE
+    : undefined;
+
+  if (configuredFromWindow) {
+    return configuredFromWindow.replace(/\/$/, '');
+  }
+
   const configured = import.meta.env.VITE_API_BASE_URL as string | undefined;
   if (configured) {
     return configured.replace(/\/$/, '');
@@ -22,7 +30,7 @@ export const getStoredSessionToken = () => {
     return null;
   }
 
-  return window.localStorage.getItem(STORAGE_KEY);
+  return window.sessionStorage.getItem(STORAGE_KEY);
 };
 
 export const setStoredSessionToken = (token: string | null) => {
@@ -31,9 +39,9 @@ export const setStoredSessionToken = (token: string | null) => {
   }
 
   if (token) {
-    window.localStorage.setItem(STORAGE_KEY, token);
+    window.sessionStorage.setItem(STORAGE_KEY, token);
   } else {
-    window.localStorage.removeItem(STORAGE_KEY);
+    window.sessionStorage.removeItem(STORAGE_KEY);
   }
 };
 
