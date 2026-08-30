@@ -3,7 +3,7 @@ import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
 import { ModuleId, useModules } from '../context/ModulesContext';
 import { useDashboard } from '../context/DashboardContext';
-import { Users, Gavel, AlertTriangle, Ticket, Shield, Zap, CircleDashed } from 'lucide-react';
+import { Users, Gavel, AlertTriangle, Ticket, Shield, Zap } from 'lucide-react';
 import { Link } from 'wouter';
 import { Badge } from '../components/Badge';
 
@@ -16,14 +16,6 @@ export const Overview: React.FC = () => {
   const progressPercent = (activeFeatures / totalFeatures) * 100;
 
   const antinukeActive = enabledModules['antinuke'];
-
-  const timelineEvents = [
-    { type: 'ban', label: 'Ban', desc: 'User123 was banned by Admin', time: '10 mins ago', color: 'var(--red)', icon: Gavel },
-    { type: 'warn', label: 'Warning', desc: 'User456 warned for spam', time: '1 hr ago', color: 'var(--amber)', icon: AlertTriangle },
-    { type: 'ticket', label: 'Ticket', desc: 'Support-0045 opened', time: '2 hrs ago', color: 'var(--accent)', icon: Ticket },
-    { type: 'delete', label: 'Delete', desc: 'Message deleted in #general', time: '5 hrs ago', color: 'var(--text-muted)', icon: CircleDashed },
-    { type: 'kick', label: 'Kick', desc: 'User789 kicked by AutoMod', time: '1 day ago', color: 'var(--red)', icon: Gavel },
-  ];
 
   return (
     <div className="flex flex-col gap-8">
@@ -87,25 +79,11 @@ export const Overview: React.FC = () => {
                   </Badge>
                 </div>
               </div>
-            )) : timelineEvents.map((ev, i) => (
-              <div key={i} className="flex gap-4 relative z-10 group">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: `color-mix(in srgb, ${ev.color} 15%, var(--surface))`, color: ev.color, border: `1px solid color-mix(in srgb, ${ev.color} 30%, transparent)` }}
-                >
-                  <ev.icon size={14} />
-                </div>
-                <div className="flex-1 pt-1 pb-2 border-b border-[var(--border-light)] group-last:border-0">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-medium text-sm text-[var(--text)]">{ev.desc}</span>
-                    <span className="text-xs text-[var(--text-faint)] font-mono">{ev.time}</span>
-                  </div>
-                  <Badge variant="default" className="scale-90 origin-left" style={{ color: ev.color, borderColor: `color-mix(in srgb, ${ev.color} 30%, transparent)`, background: `color-mix(in srgb, ${ev.color} 10%, transparent)` }}>
-                    {ev.label}
-                  </Badge>
-                </div>
-              </div>
-            ))}
+            )) : (
+              <p className="py-6 text-sm text-[var(--text-faint)]">
+                No moderation activity has been recorded for this server yet.
+              </p>
+            )}
           </div>
         </Card>
 
