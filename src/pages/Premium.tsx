@@ -5,6 +5,8 @@ import { useDashboard } from '../context/DashboardContext';
 import { useToast } from '../components/Toast';
 import { apiGet } from '../lib/api';
 
+const HEXACRAFT_SERVER_URL = 'https://discord.gg/hexacraft';
+
 export const Premium: React.FC = () => {
   const { selectedGuildId } = useDashboard();
   const { addToast } = useToast();
@@ -73,11 +75,19 @@ export const Premium: React.FC = () => {
           <p className="text-[var(--text-muted)] text-sm">{isPremium ? `Premium is active${addedAt ? ` since ${addedAt}` : ''}.` : 'You are currently using the free version of Onyx.'}</p>
         </Card>
 
-        <div className="flex-1 p-[1px] rounded-[var(--radius)] bg-gradient-to-br from-[var(--amber)] to-[var(--accent)] shadow-[0_0_20px_rgba(245,166,35,0.15)] hover:shadow-[0_0_30px_rgba(245,166,35,0.25)] transition-shadow cursor-pointer">
+        <div className="flex-1 p-[1px] rounded-[var(--radius)] bg-gradient-to-br from-[var(--amber)] to-[var(--accent)] shadow-[0_0_20px_rgba(245,166,35,0.15)] hover:shadow-[0_0_30px_rgba(245,166,35,0.25)] transition-shadow">
           <div className="h-full bg-[var(--surface)] rounded-[calc(var(--radius)-1px)] p-6 flex flex-col items-center text-center justify-center">
             <h3 className="text-2xl font-display font-bold mb-1 text-[var(--text)]">$4.99<span className="text-sm font-normal text-[var(--text-muted)]">/month</span></h3>
             <p className="text-sm text-[var(--amber)] font-medium mb-4">Cancel anytime</p>
-            <button className="w-full py-3 bg-[var(--text)] text-[var(--bg)] font-bold rounded-lg hover:opacity-90 transition-opacity">Upgrade Now</button>
+            <p className="text-xs text-[var(--text-muted)] mb-4">Purchase your plan in the Hexacraft Discord server.</p>
+            <a
+              href={HEXACRAFT_SERVER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 bg-[var(--text)] text-[var(--bg)] font-bold rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Upgrade Now
+            </a>
           </div>
         </div>
       </div>
