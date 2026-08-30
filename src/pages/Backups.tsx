@@ -4,7 +4,7 @@ import { SettingRow } from '../components/SettingRow';
 import { Toggle } from '../components/Toggle';
 import { Table } from '../components/Table';
 import { useToast } from '../components/Toast';
-import { Database, Plus, RefreshCw, Trash, Crown } from 'lucide-react';
+import { Database, Plus, RefreshCw, Trash, Crown, RotateCcw } from 'lucide-react';
 import { useModules } from '../context/ModulesContext';
 import { useDashboard } from '../context/DashboardContext';
 import { apiDelete, apiGet, apiPost } from '../lib/api';
@@ -56,7 +56,11 @@ export const Backups: React.FC = () => {
     if (!selectedGuildId) return;
     setCreating(true);
     try {
-      addToast('Create the backup with >backup create in Discord and it will appear here automatically.', 'info');
+      await apiPost(`/api/guild/${selectedGuildId}/backups`, { label: '' });
+      await loadBackups();
+      addToast('Backup created successfully', 'success');
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Could not create backup', 'error');
     } finally {
       setCreating(false);
     }
@@ -89,6 +93,20 @@ export const Backups: React.FC = () => {
     }
   };
 
+  const handleRestoreBackup = async (backupId: string) => {
+    if (!selectedGuildId) return;
+    if (!window.confirm(`Restore backup ${backupId}? Existing roles and channels are not deleted, but missing items will be recreated.`)) return;
+    try {
+      const result = await apiPost<{ rolesCreated: number; channelsCreated: number }>(
+        `/api/guild/${selectedGuildId}/backups/${backupId}/restore`,
+        {},
+      );
+      addToast(`Restored ${result.rolesCreated} roles and ${result.channelsCreated} channels`, 'success');
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Failed to restore backup', 'error');
+    }
+  };
+
   const columns = [
     { key: 'backupId', header: 'Backup ID', render: (r: BackupRecord) => <span className="font-mono text-xs">{r.backupId}</span> },
     { key: 'createdAt', header: 'Date Created' },
@@ -104,6 +122,9 @@ export const Backups: React.FC = () => {
     ) },
     { key: 'actions', header: '', width: '90px', render: (r: BackupRecord) => (
       <div className="flex items-center justify-end gap-2">
+        <button className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors p-1 bg-[var(--surface-3)] rounded" title="Restore" onClick={() => void handleRestoreBackup(r.backupId)}>
+          <RotateCcw size={14} />
+        </button>
         <button className="text-[var(--text-muted)] hover:text-[var(--red)] transition-colors p-1 bg-[var(--surface-3)] rounded" title="Delete" onClick={() => void handleDeleteBackup(r.backupId)}>
           <Trash size={14} />
         </button>
@@ -130,11 +151,11 @@ export const Backups: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex-1">
             <h3 className="font-display font-bold text-lg mb-1">Create Manual Backup</h3>
-            <p className="text-sm text-[var(--text-muted)]">Backups are created by the bot. Run the command in Discord and the latest snapshots will appear here.</p>
+           <p className="text-sm text-[var(--text-muted)]">Onyx captures the current server structure and stores the snapshot for restore from Discord.</p>
           </div>
           <button
             onClick={() => void handleCreateBackup()}
-            disabled={!enabled || creating}
+             disabled={!enabled || !isPremium || creating}
             className={`px-5 py-2.5 bg-[var(--accent)] text-white font-semibold rounded-[var(--radius-sm)] flex items-center gap-2 transition-all ${creating ? 'opacity-70 cursor-wait' : 'hover:opacity-90'} disabled:opacity-50`}
           >
             {creating ? <RefreshCw size={18} className="animate-spin" /> : <Plus size={18} />}
@@ -185,7 +206,7 @@ export const Backups: React.FC = () => {
           {loading && <span className="text-sm text-[var(--text-muted)]">Loading…</span>}
         </div>
         <div className={!enabled ? 'opacity-50 pointer-events-none' : ''}>
-          <Table columns={columns} data={backups} emptyMessage="No backups yet. Create one from Discord to populate this list." />
+           <Table columns={columns} data={backups} emptyMessage="No backups yet. Create a snapshot to populate this list." />
         </div>
       </Card>
     </div>
