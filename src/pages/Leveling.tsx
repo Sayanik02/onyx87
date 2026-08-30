@@ -102,17 +102,31 @@ export const Leveling: React.FC = () => {
             </h3>
             {loadingLb ? <p className="text-sm text-[var(--text-faint)]">Loading leaderboard…</p>
               : lb.length === 0 ? <p className="text-sm text-[var(--text-faint)]">No XP data yet. Members earn XP by chatting.</p>
-              : (
-                <Table
-                  columns={[
-                    { key: 'rank',  header: '#',        width: '40px', render: (r) => <span className="font-bold text-[var(--text-faint)]">#{r.rank}</span> },
-                    { key: 'name',  header: 'User',                    render: (r) => <span className="font-semibold">{r.name}</span> },
-                    { key: 'level', header: 'Level',                   render: (r) => <span className="px-2 py-0.5 bg-[var(--surface-3)] rounded font-mono text-xs">Lv {r.level}</span> },
-                    { key: 'xp',    header: 'Total XP',                render: (r) => <span className="text-[var(--accent)] font-mono text-xs">{r.xp} XP</span> },
-                  ]}
-                  data={lb}
-                />
-              )}
+               : (
+                 <>
+                   <div className="hidden md:block">
+                     <Table
+                       columns={[
+                         { key: 'rank',  header: '#',        width: '40px', render: (r) => <span className="font-bold text-[var(--text-faint)]">#{r.rank}</span> },
+                         { key: 'name',  header: 'User',                    render: (r) => <span className="font-semibold">{r.name}</span> },
+                         { key: 'level', header: 'Level',                   render: (r) => <span className="px-2 py-0.5 bg-[var(--surface-3)] rounded font-mono text-xs">Lv {r.level}</span> },
+                         { key: 'xp',    header: 'Total XP',                render: (r) => <span className="text-[var(--accent)] font-mono text-xs">{r.xp} XP</span> },
+                       ]}
+                       data={lb}
+                     />
+                   </div>
+                   <div className="flex flex-col md:hidden -mx-2">
+                     {lb.map((entry) => (
+                       <div key={entry.user_id} className="flex items-center gap-3 px-2 py-3 border-b border-[var(--border)] last:border-0">
+                         <span className="w-8 shrink-0 font-bold text-xs text-[var(--text-faint)]">#{entry.rank}</span>
+                         <span className="min-w-0 flex-1 truncate font-semibold text-sm">{entry.name}</span>
+                         <span className="shrink-0 px-2 py-1 bg-[var(--surface-3)] rounded font-mono text-xs">Lv {entry.level}</span>
+                         <span className="shrink-0 text-[var(--accent)] font-mono text-[11px]">{entry.xp} XP</span>
+                       </div>
+                     ))}
+                   </div>
+                 </>
+               )}
           </Card>
         </div>
       </div>
