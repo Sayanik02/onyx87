@@ -17,6 +17,7 @@ export const Antinuke: React.FC = () => {
   const { selectedGuildId } = useDashboard();
 
   const [settings, setSettings] = useState({
+    enabled: false,
     antiBan: { on: true, limit: 3 },
     antiKick: { on: true, limit: 3 },
     antiChannel: { on: true, limit: 2 },
@@ -32,8 +33,19 @@ export const Antinuke: React.FC = () => {
     const load = async () => {
       if (!selectedGuildId) return;
       try {
-        const data = await apiGet<{ enabled: boolean; punishment: string; dm_user: boolean; whitelist: Array<{ user_id: string }> }>(`/api/guild/${selectedGuildId}/antinuke`);
-        setSettings((prev) => ({ ...prev, punishment: data.punishment || prev.punishment, dmExecutor: data.dm_user ?? prev.dmExecutor }));
+        const data = await apiGet<{ enabled: boolean; punishment: string; dm_user: boolean; whitelist: Array<{ user_id: string }>; limits: Array<{ action_type: string; action_limit: number }> }>(`/api/guild/${selectedGuildId}/antinuke`);
+        const limitMap: Record<string, keyof typeof settings> = {
+          ban: 'antiBan', kick: 'antiKick', channel_delete: 'antiChannel',
+          role_delete: 'antiRole', bot_add: 'antiBot', role_perm_grant: 'antiPerms',
+        };
+        setSettings((prev) => {
+          const next = { ...prev, enabled: Boolean(data.enabled), punishment: data.punishment || prev.punishment, dmExecutor: data.dm_user ?? prev.dmExecutor };
+          for (const limit of data.limits || []) {
+            const key = limitMap[limit.action_type];
+            if (key) next[key] = { ...next[key], limit: Number(limit.action_limit) };
+          }
+          return next;
+        });
         setWhitelist((data.whitelist || []).map((item) => ({ id: String(item.user_id), name: `User ${item.user_id}`, added: 'Synced' })));
       } catch (err) {
         addToast(err instanceof Error ? err.message : 'Could not load antinuke settings', 'warning');
@@ -44,14 +56,15 @@ export const Antinuke: React.FC = () => {
   }, [selectedGuildId]);
 
   const updateSetting = async (key: keyof typeof settings, val: any) => {
-    setSettings(prev => ({ ...prev, [key]: val }));
+    const next = { ...settings, [key]: val };
+    setSettings(next);
     if (!selectedGuildId) return;
 
     try {
       await apiPost(`/api/guild/${selectedGuildId}/antinuke`, {
-        enabled: true,
-        punishment: typeof val === 'string' ? val : settings.punishment,
-        dm_user: typeof val === 'boolean' ? val : settings.dmExecutor,
+         enabled: next.enabled,
+         punishment: next.punishment,
+         dm_user: next.dmExecutor,
       });
       addToast('Settings saved', 'success');
     } catch (err) {
@@ -60,14 +73,23 @@ export const Antinuke: React.FC = () => {
   };
 
   const updateSubSetting = async (key: 'antiBan' | 'antiKick' | 'antiChannel' | 'antiRole' | 'antiBot' | 'antiPerms', subKey: 'on' | 'limit', val: any) => {
-    setSettings(prev => ({ ...prev, [key]: { ...prev[key], [subKey]: val } }));
+    const next = { ...settings, [key]: { ...settings[key], [subKey]: val } };
+    setSettings(next);
     if (!selectedGuildId) return;
 
     try {
       await apiPost(`/api/guild/${selectedGuildId}/antinuke`, {
-        enabled: true,
-        punishment: settings.punishment,
-        dm_user: settings.dmExecutor,
+         enabled: next.enabled,
+         punishment: next.punishment,
+         dm_user: next.dmExecutor,
+         limits: [
+           { action: 'ban', limit: next.antiBan.limit, window: 10 },
+           { action: 'kick', limit: next.antiKick.limit, window: 10 },
+           { action: 'channel_delete', limit: next.antiChannel.limit, window: 10 },
+           { action: 'role_delete', limit: next.antiRole.limit, window: 10 },
+           { action: 'bot_add', limit: next.antiBot.limit, window: 10 },
+           { action: 'role_perm_grant', limit: next.antiPerms.limit, window: 10 },
+         ],
       });
       addToast('Threshold updated', 'success');
     } catch (err) {
@@ -102,7 +124,7 @@ export const Antinuke: React.FC = () => {
         <h2 className="text-2xl font-display font-bold mb-2">Antinuke is Disabled</h2>
         <p className="text-[var(--text-muted)] mb-8 max-w-md">Enable Antinuke from the modules page to protect your server from malicious mass-actions.</p>
         <button 
-          onClick={() => { toggleModule('antinuke'); addToast('Antinuke enabled', 'success'); }}
+           onClick={() => { toggleModule('antinuke'); setSettings(p => ({ ...p, enabled: true })); addToast('Antinuke enabled', 'success'); }}
           className="px-6 py-3 bg-[var(--accent)] text-white font-semibold rounded-[var(--radius-sm)] hover:opacity-90 transition-opacity"
         >
           Enable Antinuke
@@ -127,7 +149,7 @@ export const Antinuke: React.FC = () => {
           <h1 className="text-3xl font-display font-bold mb-2">Antinuke</h1>
           <p className="text-[var(--text-muted)]">Protect your server from rogue admins and compromised accounts.</p>
         </div>
-        <Toggle on={enabled} onChange={() => toggleModule('antinuke')} />
+         <Toggle on={enabled} onChange={(value) => { toggleModule('antinuke'); setSettings(p => ({ ...p, enabled: value } as typeof p)); }} />
       </div>
 
       <Card>
