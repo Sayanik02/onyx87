@@ -82,8 +82,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <ModulesProvider>
-      <DashboardProvider>
+    <DashboardProvider>
+      <ModulesProvider>
         <ToastProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
             <AuthGate>
@@ -93,8 +93,8 @@ function App() {
             </AuthGate>
           </WouterRouter>
         </ToastProvider>
-      </DashboardProvider>
-    </ModulesProvider>
+      </ModulesProvider>
+    </DashboardProvider>
   );
 }
 
