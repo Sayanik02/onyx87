@@ -297,7 +297,13 @@ export const Welcome: React.FC = () => {
       setDmEnabled(Boolean(data.dm_enabled));
       setDmMessage(String((data.dm_message as string | undefined) || ''));
       setDmEmbed(Boolean(data.dm_embed_enabled));
-      setAutoRoles(String((data.autorole_ids as string | undefined) || '').split(',').filter(Boolean));
+       const rawRoles = String((data.autorole_ids as string | undefined) || '');
+       try {
+         const parsed = JSON.parse(rawRoles);
+         setAutoRoles(Array.isArray(parsed) ? parsed.map(String) : rawRoles.split(',').filter(Boolean));
+       } catch {
+         setAutoRoles(rawRoles.split(',').map(role => role.trim()).filter(Boolean));
+       }
       setCardEnabled(Boolean(data.card_enabled));
     } catch (err) {
       addToast(err instanceof Error ? err.message : 'Could not load welcome settings', 'error');
@@ -349,7 +355,7 @@ export const Welcome: React.FC = () => {
         rejoin_channel_id: rejoinChannel,
         rejoin_message: rejoinMessage,
         rejoin_embed_color: rejoinColor,
-        autorole_ids: autoRoles.join(','),
+         autorole_ids: JSON.stringify(autoRoles),
         card_enabled: cardEnabled ? 1 : 0,
       });
       addToast('Welcome settings saved', 'success');
@@ -405,7 +411,7 @@ export const Welcome: React.FC = () => {
           <h1 className="text-3xl font-display font-bold mb-1">Welcome System</h1>
           <p className="text-[var(--text-muted)]">Configure welcome messages, goodbyes, re-join detection, DMs, auto-roles, and image cards.</p>
         </div>
-        <Toggle on={enabled} onChange={() => toggleModule('welcome')} />
+         <Toggle on={enabled} onChange={(value) => { toggleModule('welcome'); setWelcomeEnabled(value); }} />
       </div>
 
       {loading && <div className="text-sm text-[var(--text-muted)]">Loading welcome settings…</div>}
