@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useDashboard } from './DashboardContext';
+import { apiGet, apiPost } from '../lib/api';
 
 export type ModuleId = 
   | 'antinuke' | 'backups' | 'automod' 
@@ -13,18 +15,18 @@ interface ModulesContextType {
 }
 
 const DEFAULT_MODULES: Record<ModuleId, boolean> = {
-  antinuke: true,
+  antinuke: false,
   backups: true,
-  automod: true,
-  tickets: true,
-  welcome: true,
+  automod: false,
+  tickets: false,
+  welcome: false,
   leave: true,
   autoreact: true,
   joindm: true,
-  leveling: true,
+  leveling: false,
   economy: false,
   counting: true,
-  logging: true,
+  logging: false,
   reactionroles: true,
   autorole: true,
   birthdays: false,
@@ -33,24 +35,26 @@ const DEFAULT_MODULES: Record<ModuleId, boolean> = {
 const ModulesContext = createContext<ModulesContextType | null>(null);
 
 export const ModulesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [enabledModules, setEnabledModules] = useState<Record<ModuleId, boolean>>(() => {
-    try {
-      const stored = localStorage.getItem('onyx_modules');
-      if (stored) {
-        return { ...DEFAULT_MODULES, ...JSON.parse(stored) };
-      }
-    } catch (e) {
-      console.error('Failed to parse modules', e);
-    }
-    return DEFAULT_MODULES;
-  });
+  const { selectedGuildId } = useDashboard();
+  const [enabledModules, setEnabledModules] = useState<Record<ModuleId, boolean>>(DEFAULT_MODULES);
 
   useEffect(() => {
-    localStorage.setItem('onyx_modules', JSON.stringify(enabledModules));
-  }, [enabledModules]);
+    if (!selectedGuildId) {
+      setEnabledModules(DEFAULT_MODULES);
+      return;
+    }
+    apiGet<{ modules: Partial<Record<ModuleId, boolean>> }>(`/api/guild/${selectedGuildId}/modules`)
+      .then(data => setEnabledModules({ ...DEFAULT_MODULES, ...(data.modules || {}) }))
+      .catch(() => setEnabledModules(DEFAULT_MODULES));
+  }, [selectedGuildId]);
 
   const toggleModule = (id: ModuleId) => {
-    setEnabledModules(prev => ({ ...prev, [id]: !prev[id] }));
+    if (!selectedGuildId) return;
+    setEnabledModules(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      void apiPost(`/api/guild/${selectedGuildId}/modules`, { modules: { [id]: next[id] } });
+      return next;
+    });
   };
 
   const isModuleEnabled = (id: ModuleId) => !!enabledModules[id];
