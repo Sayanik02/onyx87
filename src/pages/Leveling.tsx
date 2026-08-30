@@ -52,7 +52,7 @@ export const Leveling: React.FC = () => {
           <h1 className="text-3xl font-display font-bold mb-2">Leveling</h1>
           <p className="text-[var(--text-muted)]">Reward active members with XP and roles.</p>
         </div>
-        <Toggle on={enabled} onChange={() => toggleModule('leveling')} />
+         <Toggle on={enabled} onChange={(value) => { toggleModule('leveling'); setSettings(p => ({ ...p, enabled: value })); }} />
       </div>
 
       <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${!enabled ? 'opacity-50 pointer-events-none' : ''}`}>
