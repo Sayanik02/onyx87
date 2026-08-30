@@ -7,6 +7,7 @@ import { useDashboard } from '../context/DashboardContext';
 import { apiGet, apiPost } from '../lib/api';
 
 interface AutomodConfig {
+  enabled: boolean;
   anti_spam: boolean; anti_caps: boolean; caps_threshold: number;
   anti_links: boolean; anti_invites: boolean; anti_mass_mention: boolean;
   mention_threshold: number; word_filter_enabled: boolean; banned_words: string[];
@@ -14,10 +15,11 @@ interface AutomodConfig {
 }
 
 const DEFAULT: AutomodConfig = {
+  enabled: false,
   anti_spam: false, anti_caps: false, caps_threshold: 70,
   anti_links: false, anti_invites: false, anti_mass_mention: false,
   mention_threshold: 5, word_filter_enabled: false, banned_words: [],
-  escalation_enabled: false, escalation_warns: 3, escalation_action: 'timeout_1h',
+   escalation_enabled: false, escalation_warns: 3, escalation_action: 'timeout',
 };
 
 export const Moderation: React.FC = () => {
@@ -79,7 +81,7 @@ export const Moderation: React.FC = () => {
           <h1 className="text-3xl font-display font-bold mb-2">Auto-Moderation</h1>
           <p className="text-[var(--text-muted)]">Keep chat clean without manual intervention.</p>
         </div>
-        <Toggle on={enabled} onChange={() => toggleModule('automod')} />
+         <Toggle on={enabled} onChange={(value) => { toggleModule('automod'); setConfig(p => ({ ...p, enabled: value })); }} />
       </div>
 
       {loading ? <p className="text-sm text-[var(--text-faint)]">Loading settings…</p> : (
@@ -129,8 +131,7 @@ export const Moderation: React.FC = () => {
                 </select>
                 <span className="text-sm font-medium whitespace-nowrap">warnings,</span>
                 <select value={config.escalation_action} onChange={e => setConfig(p => ({ ...p, escalation_action: e.target.value }))} className="w-36 text-sm font-bold bg-[var(--surface)] text-[var(--red)] border-[rgba(255,107,107,0.3)]">
-                  <option value="timeout_1h">Timeout 1h</option>
-                  <option value="timeout_24h">Timeout 24h</option>
+                   <option value="timeout">Timeout</option>
                   <option value="kick">Kick</option>
                   <option value="ban">Ban</option>
                 </select>
