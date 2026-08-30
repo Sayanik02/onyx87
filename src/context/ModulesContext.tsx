@@ -50,11 +50,13 @@ export const ModulesProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const toggleModule = (id: ModuleId) => {
     if (!selectedGuildId) return;
-    setEnabledModules(prev => {
-      const next = { ...prev, [id]: !prev[id] };
-      void apiPost(`/api/guild/${selectedGuildId}/modules`, { modules: { [id]: next[id] } });
-      return next;
-    });
+    const previous = enabledModules[id];
+    const next = !previous;
+    setEnabledModules(current => ({ ...current, [id]: next }));
+    void apiPost(`/api/guild/${selectedGuildId}/modules`, { modules: { [id]: next } })
+      .catch(() => {
+        setEnabledModules(current => ({ ...current, [id]: previous }));
+      });
   };
 
   const isModuleEnabled = (id: ModuleId) => !!enabledModules[id];
