@@ -8,9 +8,8 @@ import { apiGet, apiPost } from '../lib/api';
 
 const EVENT_GROUPS = [
   { cat: 'Messages', items: [{ key: 'message_delete', label: 'Message Delete' }, { key: 'message_edit', label: 'Message Edit' }] },
-  { cat: 'Members',  items: [{ key: 'member_join', label: 'Member Join' }, { key: 'member_leave', label: 'Member Leave' }, { key: 'member_ban', label: 'Member Ban' }, { key: 'member_kick', label: 'Member Kick' }, { key: 'nick_change', label: 'Nickname Change' }] },
-  { cat: 'Server',   items: [{ key: 'role_create', label: 'Role Create' }, { key: 'role_delete', label: 'Role Delete' }, { key: 'channel_create', label: 'Channel Create' }, { key: 'channel_delete', label: 'Channel Delete' }, { key: 'server_update', label: 'Server Update' }] },
-  { cat: 'Voice',    items: [{ key: 'voice_join', label: 'Voice Join' }, { key: 'voice_leave', label: 'Voice Leave' }] },
+  { cat: 'Members',  items: [{ key: 'member_join', label: 'Member Join' }, { key: 'member_leave', label: 'Member Leave' }, { key: 'member_ban', label: 'Member Ban' }, { key: 'member_unban', label: 'Member Unban' }, { key: 'nick_change', label: 'Nickname Change' }] },
+  { cat: 'Server',   items: [{ key: 'role_create', label: 'Role Create' }, { key: 'role_delete', label: 'Role Delete' }, { key: 'channel_create', label: 'Channel Create' }, { key: 'channel_delete', label: 'Channel Delete' }] },
 ];
 const ALL_EVENTS = EVENT_GROUPS.flatMap(g => g.items.map(i => i.key));
 
@@ -30,7 +29,7 @@ export const Logging: React.FC = () => {
     if (!selectedGuildId) return;
     setLoading(true);
     apiGet<LoggingConfig>(`/api/guild/${selectedGuildId}/logging`)
-      .then(data => setConfig({ enabled: data.enabled ?? false, channel_id: data.channel_id ?? '', events: data.events?.length ? data.events : ALL_EVENTS }))
+      .then(data => setConfig({ enabled: data.enabled ?? false, channel_id: data.channel_id ?? '', events: data.events ?? ALL_EVENTS }))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [selectedGuildId]);
@@ -57,7 +56,7 @@ export const Logging: React.FC = () => {
           <h1 className="text-3xl font-display font-bold mb-2">Audit Logging</h1>
           <p className="text-[var(--text-muted)]">Track everything that happens in your server.</p>
         </div>
-        <Toggle on={enabled} onChange={() => toggleModule('logging')} />
+         <Toggle on={enabled} onChange={(value) => { toggleModule('logging'); setConfig(p => ({ ...p, enabled: value })); }} />
       </div>
 
       {loading ? <p className="text-sm text-[var(--text-faint)]">Loading settings…</p> : (
