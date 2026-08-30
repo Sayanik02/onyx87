@@ -16,11 +16,11 @@ interface TableProps {
 export const Table: React.FC<TableProps> = ({ columns, data, emptyMessage = "No data available" }) => {
   return (
     <div className="w-full overflow-x-auto rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
-      <table className="w-full text-left border-collapse">
+      <table className="w-full min-w-[560px] text-left border-collapse">
         <thead>
           <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
             {columns.map((col, i) => (
-              <th key={col.key || i} className="py-3 px-4 text-xs font-semibold" style={{ color: 'var(--text-faint)', width: col.width }}>
+              <th key={col.key || i} className="py-3 px-4 text-xs font-semibold whitespace-nowrap" style={{ color: 'var(--text-faint)', width: col.width }}>
                 {col.header}
               </th>
             ))}
