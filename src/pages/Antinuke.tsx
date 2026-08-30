@@ -27,13 +27,15 @@ export const Antinuke: React.FC = () => {
     punishment: 'ban',
     dmExecutor: true
   });
+  const [canManage, setCanManage] = useState(false);
   const [whitelist, setWhitelist] = useState<Array<{ id: string; name: string; added: string }>>([]);
 
   useEffect(() => {
     const load = async () => {
       if (!selectedGuildId) return;
       try {
-        const data = await apiGet<{ enabled: boolean; punishment: string; dm_user: boolean; whitelist: Array<{ user_id: string }>; limits: Array<{ action_type: string; action_limit: number }> }>(`/api/guild/${selectedGuildId}/antinuke`);
+        const data = await apiGet<{ can_manage: boolean; enabled: boolean; punishment: string; dm_user: boolean; whitelist: Array<{ user_id: string }>; limits: Array<{ action_type: string; action_limit: number }> }>(`/api/guild/${selectedGuildId}/antinuke`);
+        setCanManage(Boolean(data.can_manage));
         const limitMap: Record<string, keyof typeof settings> = {
           ban: 'antiBan', kick: 'antiKick', channel_delete: 'antiChannel',
           role_delete: 'antiRole', bot_add: 'antiBot', role_perm_grant: 'antiPerms',
@@ -102,7 +104,7 @@ export const Antinuke: React.FC = () => {
     { key: 'name', header: 'Name', render: (r: any) => <span className="font-semibold">{r.name}</span> },
     { key: 'added', header: 'Added' },
     { key: 'actions', header: '', width: '60px', render: (row: any) => (
-      <button className="text-[var(--text-faint)] hover:text-[var(--red)] transition-colors p-1" onClick={async () => {
+       <button disabled={!canManage} className="text-[var(--text-faint)] hover:text-[var(--red)] transition-colors p-1 disabled:opacity-40 disabled:cursor-not-allowed" onClick={async () => {
         if (!selectedGuildId) return;
         try {
           await apiDelete(`/api/guild/${selectedGuildId}/antinuke/whitelist/${row.id}`);
@@ -125,6 +127,7 @@ export const Antinuke: React.FC = () => {
         <p className="text-[var(--text-muted)] mb-8 max-w-md">Enable Antinuke from the modules page to protect your server from malicious mass-actions.</p>
         <button 
            onClick={() => { toggleModule('antinuke'); setSettings(p => ({ ...p, enabled: true })); addToast('Antinuke enabled', 'success'); }}
+           disabled={!canManage}
           className="px-6 py-3 bg-[var(--accent)] text-white font-semibold rounded-[var(--radius-sm)] hover:opacity-90 transition-opacity"
         >
           Enable Antinuke
@@ -149,8 +152,13 @@ export const Antinuke: React.FC = () => {
           <h1 className="text-3xl font-display font-bold mb-2">Antinuke</h1>
           <p className="text-[var(--text-muted)]">Protect your server from rogue admins and compromised accounts.</p>
         </div>
-         <Toggle on={enabled} onChange={(value) => { toggleModule('antinuke'); setSettings(p => ({ ...p, enabled: value } as typeof p)); }} />
+         <Toggle disabled={!canManage} on={enabled} onChange={(value) => { toggleModule('antinuke'); setSettings(p => ({ ...p, enabled: value } as typeof p)); }} />
       </div>
+       {!canManage && (
+         <div className="rounded-lg border border-[var(--accent-border)] bg-[var(--accent-dim)] px-4 py-3 text-sm text-[var(--text-muted)]">
+           Only the Discord server owner or an AntiNuke extra owner can change these settings. You can view the current configuration, but editing is locked.
+         </div>
+       )}
 
       <Card>
         <h3 className="font-display font-bold text-lg mb-4">Protection Modules</h3>
@@ -167,7 +175,7 @@ export const Antinuke: React.FC = () => {
                     <div className="text-xs text-[var(--text-muted)]">{p.desc}</div>
                   </div>
                 </div>
-                <Toggle on={settings[p.key].on} onChange={(v) => updateSubSetting(p.key, 'on', v)} />
+                 <Toggle disabled={!canManage} on={settings[p.key].on} onChange={(v) => updateSubSetting(p.key, 'on', v)} />
               </div>
               <div className="flex items-center justify-between border-t border-[var(--border-light)] pt-3">
                 <span className="text-xs font-medium text-[var(--text-faint)] uppercase tracking-wider">Threshold</span>
@@ -178,7 +186,7 @@ export const Antinuke: React.FC = () => {
                     value={settings[p.key].limit}
                     onChange={(e) => updateSubSetting(p.key, 'limit', parseInt(e.target.value) || 1)}
                     className="w-16 h-8 text-center text-sm"
-                    disabled={!settings[p.key].on}
+                     disabled={!canManage || !settings[p.key].on}
                   />
                   <span className="text-xs text-[var(--text-muted)]">per 10s</span>
                 </div>
@@ -195,7 +203,8 @@ export const Antinuke: React.FC = () => {
           hint="Action taken against the executor when a limit is reached"
           control={
             <select 
-              value={settings.punishment} 
+               value={settings.punishment}
+               disabled={!canManage}
               onChange={e => updateSetting('punishment', e.target.value)}
               className="w-40 font-medium"
             >
@@ -209,7 +218,7 @@ export const Antinuke: React.FC = () => {
         <SettingRow 
           label="DM Executor" 
           hint="Send a direct message to the user before punishing them"
-          control={<Toggle on={settings.dmExecutor} onChange={v => updateSetting('dmExecutor', v)} />}
+           control={<Toggle disabled={!canManage} on={settings.dmExecutor} onChange={v => updateSetting('dmExecutor', v)} />}
         />
       </Card>
 
@@ -217,7 +226,8 @@ export const Antinuke: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display font-bold text-lg">Whitelisted Users</h3>
           <button
-            onClick={async () => {
+             disabled={!canManage}
+             onClick={async () => {
               if (!selectedGuildId) return;
               const userId = window.prompt('Enter a Discord user ID to whitelist');
               if (!userId) return;
@@ -234,7 +244,7 @@ export const Antinuke: React.FC = () => {
             <UserPlus size={14} /> Add User
           </button>
         </div>
-        <Table columns={columns} data={whitelist} />
+         <Table columns={columns} data={whitelist} />
       </Card>
     </div>
   );
